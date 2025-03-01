@@ -118,8 +118,8 @@ const styles = {
     color: "#fff",
   },
   videoContainer: {
-    width: "100%",
-    maxWidth: "600px",
+    width: "75vh",
+    height: "75vh",
   },
   video: {
     width: "100%",
