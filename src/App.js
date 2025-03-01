@@ -1,3 +1,4 @@
+// 
 import React, { useState, useEffect, useRef } from "react";
 
 function App() {
@@ -6,6 +7,7 @@ function App() {
   const [facingMode, setFacingMode] = useState("environment"); // "environment" = back, "user" = front
   const [lastFrameTime, setLastFrameTime] = useState("No frame sent yet");
   const [textColor, setTextColor] = useState("#fff"); // Default white text
+  const [accelData, setAccelData] = useState({ x: 0, y: 0, z: 0 });
 
   // Set up the camera stream when facingMode changes
   useEffect(() => {
@@ -35,7 +37,7 @@ function App() {
     };
   }, [facingMode]);
 
-  // Capture a frame every 30 seconds and send it to the server
+  // Capture a frame every 45 seconds and send it to the server
   useEffect(() => {
     const interval = setInterval(() => {
       if (videoRef.current && canvasRef.current) {
@@ -68,6 +70,16 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
+  // Listen for accelerometer data and update state
+  useEffect(() => {
+    function handleMotion(event) {
+      const { x, y, z } = event.accelerationIncludingGravity || {};
+      setAccelData({ x, y, z });
+    }
+    window.addEventListener("devicemotion", handleMotion);
+    return () => window.removeEventListener("devicemotion", handleMotion);
+  }, []);
+
   // Toggle between front and back cameras
   const toggleCamera = () => {
     setFacingMode((prev) => (prev === "environment" ? "user" : "environment"));
@@ -84,6 +96,13 @@ function App() {
       </div>
       {/* Display last frame sent time directly below the video */}
       <p style={{ ...styles.text, color: textColor }}>{lastFrameTime}</p>
+      {/* Accelerometer Data Box */}
+      <div style={styles.accelBox}>
+        <p>Accelerometer Data:</p>
+        <p>X: {accelData.x?.toFixed(2)}</p>
+        <p>Y: {accelData.y?.toFixed(2)}</p>
+        <p>Z: {accelData.z?.toFixed(2)}</p>
+      </div>
       {/* Hidden canvas for capturing video frames */}
       <canvas ref={canvasRef} style={{ display: "none" }} />
     </div>
@@ -120,14 +139,25 @@ const styles = {
   videoContainer: {
     width: "75vh",
     height: "75vh",
+    overflow: "hidden",
+    borderRadius: "8px",
   },
   video: {
     width: "100%",
-    borderRadius: "8px",
+    height: "100%",
+    objectFit: "cover",
   },
   text: {
     fontSize: "16px",
     marginTop: "10px",
+  },
+  accelBox: {
+    backgroundColor: "#222",
+    padding: "10px",
+    borderRadius: "8px",
+    marginTop: "20px",
+    textAlign: "center",
+    width: "75vh",
   },
 };
 
