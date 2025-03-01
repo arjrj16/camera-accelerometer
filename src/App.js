@@ -41,13 +41,37 @@ function App() {
       if (videoRef.current && canvasRef.current) {
         const video = videoRef.current;
         const canvas = canvasRef.current;
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
+        const width = video.videoWidth;
+        const height = video.videoHeight;
+    
+        // Set canvas size to be a square with side equal to the video width
+        canvas.width = width;
+        canvas.height = width;
         const ctx = canvas.getContext("2d");
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+        // Determine the square crop dimensions.
+        let sx, sy, sSize;
+        if (height >= width) {
+          // If the video is taller, crop vertically.
+          sx = 0;
+          sy = (height - width) / 2;
+          sSize = width;
+        } else {
+          // If the video is wider, crop horizontally.
+          sx = (width - height) / 2;
+          sy = 0;
+          sSize = height;
+        }
+    
+        // Draw the cropped square onto the canvas.
+        // This maps the source square (sx, sy, sSize, sSize) to the entire square canvas.
+        ctx.drawImage(video, sx, sy, sSize, sSize, 0, 0, width, width);
+    
+        // Convert the canvas image to a data URL.
         const dataUrl = canvas.toDataURL("image/jpeg");
-
-        fetch("https://6ba8-38-34-121-59.ngrok-free.app/upload", {
+    
+        // Send the dataUrl to the server...
+        fetch("https://9abd-101-47-22-247.ngrok-free.app/upload", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ image: dataUrl, timestamp: Date.now() }),
@@ -63,7 +87,34 @@ function App() {
           })
           .catch((error) => console.error("Error sending image:", error));
       }
-    }, 45000); // every 45 seconds
+    }, 45000); // every 45 seconds    
+    // const interval = setInterval(() => {
+    //   if (videoRef.current && canvasRef.current) {
+    //     const video = videoRef.current;
+    //     const canvas = canvasRef.current;
+    //     canvas.width = video.videoWidth;
+    //     canvas.height = video.videoHeight;
+    //     const ctx = canvas.getContext("2d");
+    //     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    //     const dataUrl = canvas.toDataURL("image/jpeg");
+
+    //     fetch("https://9abd-101-47-22-247.ngrok-free.app/upload", {
+    //       method: "POST",
+    //       headers: { "Content-Type": "application/json" },
+    //       body: JSON.stringify({ image: dataUrl, timestamp: Date.now() }),
+    //     })
+    //       .then((response) => response.json())
+    //       .then((data) => {
+    //         const time = new Date().toLocaleTimeString();
+    //         setLastFrameTime(`Last frame sent at ${time}`);
+    //         // Toggle text color to red for 1 second
+    //         setTextColor("red");
+    //         setTimeout(() => setTextColor("#fff"), 1000);
+    //         console.log("Frame sent at", time, "Server response:", data);
+    //       })
+    //       .catch((error) => console.error("Error sending image:", error));
+    //   }
+    // }, 45000); // every 45 seconds
 
     return () => clearInterval(interval);
   }, []);
